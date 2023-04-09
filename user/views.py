@@ -1,11 +1,11 @@
+import base64
+
 import six as six
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-from django.utils.encoding import force_str, force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,57 +15,80 @@ from rest_framework.views import APIView
 from user.models import User, UserRating, UserInterest, FreelancerInterest
 from user.serializer import UserDataSerial, Rating, InterestDataSerializer, FreelancerSerializer
 from user.utils import Util
+from pyotp import TOTP
+
+OTP_VALIDITY_TIME: int = 60 * 15
 
 
-class TokenGenerator(PasswordResetTokenGenerator):
-    def _make_hash_value(self, user, timestamp):
-        return (
-                six.text_type(user.pk) + six.text_type(timestamp) +
-                six.text_type(user.is_active)
-        )
+def get_base32_key(user) -> str:
+    # Generates a base32 value based on the key provided.
+    # Key used should be hashed value of password.
+    key = settings.SECRET_KEY + str(user.pk)
+    key = bytes(key, encoding="UTF-8")
+    val = base64.b32encode(key)
+    val = str(val)
+    return val.split("'")[1]
 
 
-account_activation_token = TokenGenerator()
+def generate_otp(user, digits=4) -> int:
+    base32_key = get_base32_key(user)
+    otp = TOTP(base32_key, interval=OTP_VALIDITY_TIME, digits=digits).now()
+    return otp
 
 
-def activatepw(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        users = User.objects.get(pk=uid)
-    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
-        users = None
-    if users is not None and account_activation_token.check_token(users, token):
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        return Response({
-            "message": "User Verified!",
-            "user_id": uid,
-        }, status=status.HTTP_200_OK)
-    else:
-        return Response({
-            "message": "Invalid Activation Link!",
-        },
-            status=status.HTTP_400_BAD_REQUEST, )
+def validate_otp(user, otp: int, digits=4) -> bool:
+    base32_key = get_base32_key(user)
+    return TOTP(base32_key, interval=OTP_VALIDITY_TIME, digits=digits).verify(otp)
 
 
-def activate(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        users = User.objects.get(pk=uid)
-    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
-        users = None
-    if users is not None and account_activation_token.check_token(users, token):
-        users.is_verified = True
-        users.save()
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        return Response({
-            "message": "Email Verified!",
-            "user_id": uid,
-        }, status=status.HTTP_200_OK)
-    else:
-        return Response({
-            "message": "Invalid Activation Link!",
-        },
-            status=status.HTTP_400_BAD_REQUEST, )
+class activatepw(APIView):
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+        global otp
+        try:
+            data = request.data
+            otp = data['otp']
+            username = data['username']
+            users = User.objects.get(username=username)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            users = None
+        if users is not None and validate_otp(users, otp):
+            return Response({
+                "message": "User Verified!",
+                "user_id": users.id,
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "message": "Invalid Activation Link!",
+            },
+                status=status.HTTP_400_BAD_REQUEST, )
+
+
+class activate(APIView):
+    permission_classes = ()
+
+    def post(self, request, *args, **kwargs):
+        global otp
+        try:
+            data = request.data
+            otp = data['otp']
+            username = data['username']
+            users = User.objects.get(username=username)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            users = None
+        if users is not None and validate_otp(users, otp):
+            users.is_verified = True
+            users.save()
+            return Response({
+                "message": "User Verified!",
+                "user_id": users.id,
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "message": "Invalid Activation Link!",
+            },
+                status=status.HTTP_400_BAD_REQUEST, )
 
 
 # Create your views here.
@@ -90,22 +113,26 @@ class Create_User(APIView):
                 phone = None
             if request.FILES.get('image', False) is False:
                 user_image = ''
-            userSign = User.objects.create_user(
-                username=data['username'],
-                email=data['email'],
-                password=data['password'],
-                address=address,
-                name=name,
-                user_image=user_image,
-                phone=int(phone),
-            )
+            try:
+                userSign = User.objects.create_user(
+                    username=data['username'],
+                    email=data['email'],
+                    password=data['password'],
+                    address=address,
+                    name=name,
+                    user_image=user_image,
+                    phone=int(phone),
+                )
+            except:
+                return Response({
+                    "message": "Email or Username Already Exists!",
+                }, status=status.HTTP_200_OK)
+
             current_site = get_current_site(request)
             mail_subject = 'Activate your account.'
             message = render_to_string('../templates/emailtemplate.html', {
                 'user': userSign,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(userSign.pk)),
-                'token': account_activation_token.make_token(userSign),
+                'otp': generate_otp(request.user)
             })
             to_email = data['email']
             data = {'email_body': message,
@@ -113,7 +140,7 @@ class Create_User(APIView):
             Util.send_email(data)
             userSign.save()
             return Response({
-                "message": "Verification link sent!",
+                "message": "OTP link sent!",
             }, status=status.HTTP_200_OK)
 
         except:
@@ -166,13 +193,10 @@ class emailpass(APIView):
         try:
             emails = data['email']
             signupdata = User.objects.get(email=emails)
-            current_site = get_current_site(request)
             mail_subject = 'Change Your Password.'
             message = render_to_string('../templates/passwordtemplate.html', {
                 'user': signupdata,
-                'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(signupdata.pk)),
-                'token': account_activation_token.make_token(signupdata),
+                'otp': generate_otp(request.user)
             })
             to_email = emails
             data = {'email_body': message,
@@ -190,9 +214,7 @@ def reverify(request, signupdata, emails):
         mail_subject = 'Activate your account.'
         message = render_to_string('../templates/emailtemplate.html', {
             'user': signupdata,
-            'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(signupdata.pk)),
-            'token': account_activation_token.make_token(signupdata),
+            'otp': generate_otp(request.user)
         })
         to_email = emails
         data = {'email_body': message,
