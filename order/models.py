@@ -27,5 +27,5 @@ class orderProgress(models.Model):
         ONPROGRESS = 2, _('Onprogress')
         COMPLETED = 3, _('Completed')
 
-    orderStatus = models.IntegerField(choices=status, null=True, blank=True)
+    orderStatus = models.IntegerField(choices=status.choices, null=True, blank=True)
     applicants = models.ManyToManyField(User, related_name='Applicant')

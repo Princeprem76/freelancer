@@ -14,6 +14,8 @@ from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import environ
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
@@ -38,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'user.apps.UserConfig',
+    'payment.apps.PaymentConfig',
+    'order.apps.OrderConfig'
 
 ]
 
@@ -140,14 +144,18 @@ AUTH_USER_MODEL = 'user.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_SSL = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_HOST_USER = 'sawariservices12@gmail.com'
-EMAIL_HOST_PASSWORD = 'service1sawari'
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
-SERVER_EMAIL = os.environ.get('EMAIL_HOST_USER')
 
+env = environ.Env()
+environ.Env.read_env()
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'  # Name for all the SenGrid accounts
+EMAIL_HOST_PASSWORD = env('SENDGRID_API_KEY')
+
+# The email you'll be sending emails from
+DEFAULT_FROM_EMAIL = env('FROM_EMAIL', default='noreply@gmail.com')
+LOGIN_REDIRECT_URL = 'success'
 SESSION_COOKIE_AGE = 360
 SESSION_SAVE_EVERY_REQUEST = True

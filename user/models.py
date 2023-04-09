@@ -63,9 +63,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class UserRating(models.Model):
-    rating_receiver = models.ForeignKey(User, on_delete=models.CASCADE)
-    rating_giver = models.ForeignKey(User, on_delete=models.CASCADE)
-    rating = models.IntegerField('Rating', max_length=1, null=True, blank=True)
+    rating_receiver = models.ForeignKey(User,related_name='Receiver', on_delete=models.CASCADE)
+    rating_giver = models.ForeignKey(User,related_name='Giver', on_delete=models.CASCADE)
+    rating = models.IntegerField('Rating', null=True, blank=True)
     review = models.TextField('Review', null=True, blank=True)
 
 
