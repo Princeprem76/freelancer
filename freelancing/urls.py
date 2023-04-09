@@ -20,24 +20,23 @@ from django.urls import path
 from order.views import Orders
 from payment.views import Order_payment
 from user.views import Login_User, Create_User, forgetpw, activatepw, activate, details, changepass, InterestData, \
-    UserInterestData, ratingsAdd, UserRatingData
+    UserInterestData, ratingsAdd, UserRatingData, emailpass
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/login/', Login_User.as_view(), name="login"),
-    path('api/v1/Register/', Create_User.as_view(), name="register"),
-    path('api/v1/forgetpw/<int:id>/', forgetpw.as_view(), name="forgetpassword"),
+    path('api/v1/register/', Create_User.as_view(), name="register"),
     path('api/v1/activate/', activate.as_view(), name='activate'),
     path('api/v1/activatepw/', activatepw.as_view(), name='password reset'),
+    path('api/v1/emailpw/', emailpass.as_view(), name="Email recovery"),
     path('api/v1/userdetails/', details.as_view(), name="user details"),
     path('api/v1/changepassword/', changepass.as_view(), name="change password"),
     path('api/v1/forgetpassword/', forgetpw.as_view(), name="forget password"),
     path('api/v1/interestdata/', InterestData.as_view(), name="Interest"),
-    path('api/v1/userinterest/',UserInterestData.as_view(), nae="UserInterest"),
+    path('api/v1/userinterest/', UserInterestData.as_view(), name="UserInterest"),
     path('api/v1/payments/', Order_payment.as_view(), name="Payment"),
     path('api/v1/addrating/', ratingsAdd.as_view(), name="Give Rating"),
     path('api/v1/userrating/<int:id>/', UserRatingData.as_view(), name="User Rating"),
     path('api/v1/orders/', Orders.as_view(), name="Client Order"),
-
 
 ]

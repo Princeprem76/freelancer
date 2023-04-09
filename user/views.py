@@ -17,13 +17,13 @@ from user.serializer import UserDataSerial, Rating, InterestDataSerializer, Free
 from user.utils import Util
 from pyotp import TOTP
 
-OTP_VALIDITY_TIME: int = 60 * 15
+OTP_VALIDITY_TIME: int = 60 * 150
 
 
 def get_base32_key(user) -> str:
     # Generates a base32 value based on the key provided.
     # Key used should be hashed value of password.
-    key = settings.SECRET_KEY + str(user.pk)
+    key = settings.SECRET_KEY + str(user.id)
     key = bytes(key, encoding="UTF-8")
     val = base64.b32encode(key)
     val = str(val)
@@ -49,14 +49,17 @@ class activatepw(APIView):
         try:
             data = request.data
             otp = data['otp']
-            username = data['username']
-            users = User.objects.get(username=username)
+            emails = data['email']
+            users = User.objects.get(email=emails)
         except(TypeError, ValueError, OverflowError, User.DoesNotExist):
             users = None
         if users is not None and validate_otp(users, otp):
+            refresh = RefreshToken.for_user(users)
             return Response({
                 "message": "User Verified!",
                 "user_id": users.id,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
             }, status=status.HTTP_200_OK)
         else:
             return Response({
@@ -74,7 +77,7 @@ class activate(APIView):
             data = request.data
             otp = data['otp']
             username = data['username']
-            users = User.objects.get(username=username)
+            users = User.objects.get(username__iexact=username)
         except(TypeError, ValueError, OverflowError, User.DoesNotExist):
             users = None
         if users is not None and validate_otp(users, otp):
@@ -122,17 +125,16 @@ class Create_User(APIView):
                     name=name,
                     user_image=user_image,
                     phone=int(phone),
+                    user_type=data['user_type']
                 )
             except:
                 return Response({
                     "message": "Email or Username Already Exists!",
                 }, status=status.HTTP_200_OK)
-
-            current_site = get_current_site(request)
             mail_subject = 'Activate your account.'
             message = render_to_string('../templates/emailtemplate.html', {
                 'user': userSign,
-                'otp': generate_otp(request.user)
+                'otp': generate_otp(userSign)
             })
             to_email = data['email']
             data = {'email_body': message,
@@ -163,7 +165,7 @@ class Login_User(APIView):
                 if user is not None:
                     refresh = RefreshToken.for_user(user)
                     login(request, user)
-                    userdetails = User.objects.get(username__iexact=username)
+                    userdetails = User.objects.get(username=username)
                     usertype = userdetails.user_type
                     serializer = UserDataSerial(userdetails, many=False)
                     if not userdetails.is_verified:
@@ -196,7 +198,7 @@ class emailpass(APIView):
             mail_subject = 'Change Your Password.'
             message = render_to_string('../templates/passwordtemplate.html', {
                 'user': signupdata,
-                'otp': generate_otp(request.user)
+                'otp': generate_otp(signupdata)
             })
             to_email = emails
             data = {'email_body': message,
@@ -229,7 +231,7 @@ def reverify(request, signupdata, emails):
 
 
 class forgetpw(APIView):
-    permission_classes = ()
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         data = request.data
@@ -237,7 +239,7 @@ class forgetpw(APIView):
             newpw = data['password']
             repw = data['repassword']
             if newpw == repw:
-                userdata = User.objects.get(email=kwargs['email'])
+                userdata = User.objects.get(id=request.user.id)
                 userdata.set_password(newpw)
                 userdata.save()
                 return Response({"message": "The password has been reset!", }, status=status.HTTP_200_OK, )
