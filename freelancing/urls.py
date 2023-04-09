@@ -17,7 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from user.views import Login_User, Create_User, forgetpw, activatepw, activate, details, changepass
+from order.views import Orders
+from payment.views import Order_payment
+from user.views import Login_User, Create_User, forgetpw, activatepw, activate, details, changepass, InterestData, \
+    UserInterestData, ratingsAdd, UserRatingData
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,4 +32,12 @@ urlpatterns = [
     path('api/v1/userdetails/', details.as_view(), name="user details"),
     path('api/v1/changepassword/', changepass.as_view(), name="change password"),
     path('api/v1/forgetpassword/', forgetpw.as_view(), name="forget password"),
+    path('api/v1/interestdata/', InterestData.as_view(), name="Interest"),
+    path('api/v1/userinterest/',UserInterestData.as_view(), nae="UserInterest"),
+    path('api/v1/payments/', Order_payment.as_view(), name="Payment"),
+    path('api/v1/addrating/', ratingsAdd.as_view(), name="Give Rating"),
+    path('api/v1/userrating/<int:id>/', UserRatingData.as_view(), name="User Rating"),
+    path('api/v1/orders/', Orders.as_view(), name="Client Order"),
+
+
 ]

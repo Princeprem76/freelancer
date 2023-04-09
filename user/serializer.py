@@ -6,13 +6,21 @@ from user.models import User, UserRating, UserInterest, FreelancerInterest
 class UserDataSerial(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'username', 'user_image', 'phone', 'address', 'is_verified']
+        fields = ['email', 'username', 'name', 'user_image', 'phone', 'address', 'is_verified']
+
+
+class UserNameSerial(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['name']
 
 
 class Rating(serializers.ModelSerializer):
+    rating_giver = UserNameSerial(read_only=True, many=False)
+
     class Meta:
         model = UserRating
-        fields = ['rating_giver.username', 'rating', 'review']
+        fields = ['rating_giver', 'rating', 'review']
 
 
 class InterestDataSerializer(serializers.ModelSerializer):
@@ -26,4 +34,4 @@ class FreelancerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FreelancerInterest
-        fields = ['interests']
+        fields = ['id', 'interests']
