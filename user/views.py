@@ -127,22 +127,24 @@ class Create_User(APIView):
                     phone=int(phone),
                     user_type=data['user_type']
                 )
+                userSign.is_verified = True
+                userSign.save()
             except:
                 return Response({
                     "message": "Email or Username Already Exists!",
                 }, status=status.HTTP_200_OK)
-            mail_subject = 'Activate your account.'
-            message = render_to_string('../templates/emailtemplate.html', {
-                'user': userSign,
-                'otp': generate_otp(userSign)
-            })
-            to_email = data['email']
-            data = {'email_body': message,
-                    'email': to_email, 'subject': mail_subject}
-            Util.send_email(data)
-            userSign.save()
+            # mail_subject = 'Activate your account.'
+            # message = render_to_string('../templates/emailtemplate.html', {
+            #     'user': userSign,
+            #     'otp': generate_otp(userSign)
+            # })
+            # to_email = data['email']
+            # data = {'email_body': message,
+            #         'email': to_email, 'subject': mail_subject}
+            # Util.send_email(data)
+            # userSign.save()
             return Response({
-                "message": "OTP link sent!",
+                "message": "User Created",
             }, status=status.HTTP_200_OK)
 
         except:
