@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from order.views import Orders, OrderApply, ApplicationDetails, AssignApplication, ChangeStatus
+from order.views import Orders, OrderApply, ApplicationDetails, AssignApplication, ChangeStatus, SearchOrder
 from payment.views import Order_payment
 from user.views import Login_User, Create_User, forgetpw, activatepw, activate, details, changepass, InterestData, \
     UserInterestData, ratingsAdd, UserRatingData, emailpass, InterestSearch, SpecificUserData
@@ -44,5 +44,6 @@ urlpatterns = [
     path('api/v1/applicants/<int:id>/', ApplicationDetails.as_view(), name="Application Details"),
     path('api/v1/assign/<int:id>/', AssignApplication.as_view(), name="Assign Applicants"),
     path('api/v1/completed/<int:id>/', ChangeStatus.as_view(), name="Order Completed"),
+    path('api/v1/searchorder/', SearchOrder.as_view(), name="Search order"),
 
 ]

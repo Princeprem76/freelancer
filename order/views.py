@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from order.models import clientOrder, orderProgress
-from order.serializer import OrderSerializer, OrderApplicationSerial
+from order.serializer import OrderSerializer, OrderApplicationSerial, OrderDataSerializer
 
 
 class Orders(APIView):
@@ -85,3 +85,13 @@ class ChangeStatus(APIView):
         order.save()
         order_data.save()
         return Response({"data": 'Order Completed'}, status=status.HTTP_200_OK, )
+
+
+class SearchOrder(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        interests = request.data['interest']
+        data = clientOrder.objects.filter(order_category__interests__icontains=interests, is_active_order=True)
+        serializer = OrderDataSerializer(data, many=True)
+        return Response({'data': serializer.data}, status=status.HTTP_200_OK)
