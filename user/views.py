@@ -1,6 +1,4 @@
 import base64
-
-import six as six
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -13,7 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 
 from user.models import User, UserRating, UserInterest, FreelancerInterest
-from user.serializer import UserDataSerial, Rating, InterestDataSerializer, FreelancerSerializer
+from user.serializer import UserDataSerial, Rating, InterestDataSerializer, FreelancerSerializer, UserNameSerial
 from user.utils import Util
 from pyotp import TOTP
 
@@ -127,22 +125,22 @@ class Create_User(APIView):
                     phone=int(phone),
                     user_type=data['user_type']
                 )
-                userSign.is_verified = True
-                userSign.save()
+                # userSign.is_verified = True
+                # userSign.save()
             except:
                 return Response({
                     "message": "Email or Username Already Exists!",
                 }, status=status.HTTP_200_OK)
-            # mail_subject = 'Activate your account.'
-            # message = render_to_string('../templates/emailtemplate.html', {
-            #     'user': userSign,
-            #     'otp': generate_otp(userSign)
-            # })
-            # to_email = data['email']
-            # data = {'email_body': message,
-            #         'email': to_email, 'subject': mail_subject}
-            # Util.send_email(data)
-            # userSign.save()
+            mail_subject = 'Activate your account.'
+            message = render_to_string('../templates/emailtemplate.html', {
+                'user': userSign,
+                'otp': generate_otp(userSign)
+            })
+            to_email = data['email']
+            data = {'email_body': message,
+                    'email': to_email, 'subject': mail_subject}
+            Util.send_email(data)
+            userSign.save()
             return Response({
                 "message": "User Created",
             }, status=status.HTTP_200_OK)
@@ -368,3 +366,31 @@ class UserInterestData(APIView):
         data = FreelancerInterest.objects.filter(user_id=request.user.id)
         serializer = FreelancerSerializer(data, many=False)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK, )
+
+
+class SpecificUserData(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        userid = request.query_params.get('id')
+        data = User.objects.get(id=userid)
+        ratings = UserRating.objects.filter(rating_receiver_id=userid)
+        interests = FreelancerInterest.objects.get(user_id=userid)
+        user_serializer = UserNameSerial(data, many=False)
+        rating_serializer = Rating(ratings, many=True)
+        interest_serializer = FreelancerSerializer(interests, many=False)
+        return Response(
+            {"user_data": user_serializer.data, "rating_data": rating_serializer, "interest_data": interest_serializer},
+            status=status.HTTP_200_OK, )
+
+
+class InterestSearch(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        interests = request.data['interest']
+        user = FreelancerInterest.objects.filter(interests__interests__iexact=interests).all()
+        user_serializer = UserNameSerial(user, many=True)
+        return Response(
+            {"user_data": user_serializer.data},
+            status=status.HTTP_200_OK, )

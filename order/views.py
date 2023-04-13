@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from order.models import clientOrder
-from order.serializer import OrderSerializer
+from order.models import clientOrder, orderProgress
+from order.serializer import OrderSerializer, OrderApplicationSerial
 
 
 class Orders(APIView):
@@ -37,3 +37,51 @@ class Orders(APIView):
         serializer = OrderSerializer(data, many=True)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK, )
 
+
+class OrderApply(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.user.id
+        order_id = request.query_params.get('id')
+        order_data, _ = orderProgress.objects.get_or_create(order_id=order_id)
+        order_data.applicants.add(user_id)
+        order_data.orderStatus = 1
+        order_data.save()
+        return Response({"data": 'Applied!'}, status=status.HTTP_200_OK, )
+
+
+class ApplicationDetails(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        order_id = request.query_params.get('id')
+        order_data = orderProgress.objects.get(order_id=order_id)
+        serializer = OrderApplicationSerial(order_data, many=False)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK, )
+
+
+class AssignApplication(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        order_id = request.query_params.get('id')
+        order_data = orderProgress.objects.get(order_id=order_id)
+        order_data.freelancer = request.data['user_id']
+        order_data.orderStatus = 2
+        order_data.save()
+        return Response({"data": 'Applicant Assigned'}, status=status.HTTP_200_OK, )
+
+
+class ChangeStatus(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        order_id = request.query_params.get('id')
+        order_data = orderProgress.objects.get(order_id=order_id)
+        order_data.orderStatus = 3
+        order = clientOrder.objects.get(id=order_id)
+        order.is_active_order = False
+        order.save()
+        order_data.save()
+        return Response({"data": 'Order Completed'}, status=status.HTTP_200_OK, )

@@ -13,6 +13,7 @@ class clientOrder(models.Model):
     order_price = models.PositiveIntegerField('Price')
     image = models.ImageField(upload_to='order_image/', blank=True, null=True)
     deadline = models.DateTimeField()
+    is_active_order = models.BooleanField(default=True)
 
     def __str__(self):
         return self.order_name

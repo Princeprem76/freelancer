@@ -6,13 +6,13 @@ from user.models import User, UserRating, UserInterest, FreelancerInterest
 class UserDataSerial(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'username', 'name', 'user_image', 'phone', 'address', 'is_verified']
+        fields = ['id','email', 'username', 'name', 'user_image', 'phone', 'address', 'is_verified']
 
 
 class UserNameSerial(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['name']
+        fields = ['id','email', 'name','user_image']
 
 
 class Rating(serializers.ModelSerializer):
