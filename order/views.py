@@ -95,3 +95,11 @@ class SearchOrder(APIView):
         data = clientOrder.objects.filter(order_category__interests__icontains=interests, is_active_order=True)
         serializer = OrderDataSerializer(data, many=True)
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+
+class AllOrder(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        data = clientOrder.objects.filter(is_active_order=True)
+        serializer = OrderDataSerializer(data, many=True)
+        return Response({'data': serializer.data}, status=status.HTTP_200_OK)
