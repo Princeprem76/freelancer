@@ -336,7 +336,6 @@ class UserRatingData(APIView):
         u = UserRating.objects.filter(rating_receiver_id=user).values('rating')
         a = UserRating.objects.filter(rating_receiver_id=user).all().distinct().count()
         for i in u:
-            print(i['rating'])
             count += i['rating']
         try:
             r = int(count / a)
