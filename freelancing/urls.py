@@ -48,3 +48,5 @@ urlpatterns = [
     path('api/v1/allorder/', AllOrder.as_view(), name="All order"),
 
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
