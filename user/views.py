@@ -330,16 +330,20 @@ class UserRatingData(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        user = request.query_params.get('id')
+        user = self.kwargs.get("id")
         detail = UserRating.objects.filter(rating_receiver_id=user)
         count = 0
-        u = UserRating.objects.filter(rating_receiver_id=id).values('rating')
-        a = UserRating.objects.filter(rating_receiver_id=id).all().distinct().count()
+        u = UserRating.objects.filter(rating_receiver_id=user).values('rating')
+        a = UserRating.objects.filter(rating_receiver_id=user).all().distinct().count()
         for i in u:
-            count += i
-        r = int(count / a)
+            print(i['rating'])
+            count += i['rating']
+        try:
+            r = int(count / a)
+        except:
+            r = 0
         ratings = Rating(detail, many=True)
-        return Response({"overall_rating": r, "data": ratings}, status=status.HTTP_200_OK, )
+        return Response({"overall_rating": r, "data": ratings.data}, status=status.HTTP_200_OK, )
 
 
 class InterestData(APIView):
@@ -372,7 +376,7 @@ class SpecificUserData(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        userid = request.query_params.get('id')
+        userid = self.kwargs.get("id")
         data = User.objects.get(id=userid)
         ratings = UserRating.objects.filter(rating_receiver_id=userid)
         interests = FreelancerInterest.objects.get(user_id=userid)
