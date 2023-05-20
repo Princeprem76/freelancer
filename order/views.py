@@ -9,7 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from order.models import clientOrder, orderProgress
-from order.serializer import OrderSerializer, OrderApplicationSerial, OrderDataSerializer, OrderApplicantsCount
+from order.serializer import OrderSerializer, OrderApplicationSerial, OrderDataSerializer, OrderApplicantsCount, \
+    MyOrderSerializer
 
 
 class Orders(APIView):
@@ -110,4 +111,13 @@ class AllOrder(APIView):
     def get(self, request, *args, **kwargs):
         data = clientOrder.objects.filter(is_active_order=True)
         serializer = OrderDataSerializer(data, many=True)
+        return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+
+
+class MyOrder(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        data = orderProgress.objects.filter(freelancer_id=request.user.id)
+        serializer = MyOrderSerializer(data, many=True)
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)

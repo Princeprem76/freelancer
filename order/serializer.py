@@ -37,6 +37,13 @@ class OrderApplicationSerial(serializers.ModelSerializer):
         model = orderProgress
         fields = ['id', 'order', 'freelancer', 'orderStatus', 'applicants']
 
+class MyOrderSerializer(serializers.ModelSerializer):
+    order = OrderSerializer(read_only=True, many=False)
+
+    class Meta:
+        model = orderProgress
+        fields = ['id', 'order', 'orderStatus']
+
 
 
 class OrderApplicantsCount(serializers.ModelSerializer):
