@@ -362,7 +362,7 @@ class UserInterestData(APIView):
         data, _ = FreelancerInterest.objects.get_or_create(user_id=request.user.id)
         itemss = json.loads(itemlist)
         for i in itemss:
-            data.item.add(i)
+            data.interests.add(i)
             data.save()
         return Response({'data': 'Interest Added'}, status=status.HTTP_200_OK)
 
