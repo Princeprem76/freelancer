@@ -5,12 +5,17 @@ from user.serializer import UserNameSerial, InterestDataSerializer
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField("get_status")
     order_category = InterestDataSerializer(read_only=True, many=True)
 
     class Meta:
         model = clientOrder
         fields = ['id', 'order_name', 'description', 'order_category', 'order_price', 'image', 'deadline',
-                  'is_active_order']
+                  'is_active_order', 'status']
+
+    def get_status(self, obj):
+        o = orderProgress.objects.get(order_id=obj.id)
+        return o.orderStatus
 
 
 class OrderDataSerializer(serializers.ModelSerializer):
@@ -33,16 +38,11 @@ class OrderApplicationSerial(serializers.ModelSerializer):
         fields = ['id', 'order', 'freelancer', 'orderStatus', 'applicants']
 
 
+
 class OrderApplicantsCount(serializers.ModelSerializer):
-    freelancer_count = serializers.SerializerMethodField("get_count")
     freelancer = UserNameSerial(read_only=True, many=False)
 
     class Meta:
         model = orderProgress
         fields = ['freelancer_count','orderStatus', 'freelancer']
 
-    def get_count(self, obj):
-        object_id = obj.id
-        aa = orderProgress.objects.get(id=object_id)
-        count = aa.applicants.count()
-        return count
