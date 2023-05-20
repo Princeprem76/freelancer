@@ -31,3 +31,17 @@ class OrderApplicationSerial(serializers.ModelSerializer):
     class Meta:
         model = orderProgress
         fields = ['id', 'order', 'freelancer', 'orderStatus', 'applicants']
+
+
+class OrderApplicantsCount(serializers.ModelSerializer):
+    freelancer_count = serializers.SerializerMethodField("get_count")
+
+    class Meta:
+        model = orderProgress
+        fields = ['freelancer_count','orderStatus']
+
+    def get_count(self, obj):
+        object_id = obj.id
+        aa = orderProgress.objects.get(id=object_id)
+        count = aa.applicants.count()
+        return count
