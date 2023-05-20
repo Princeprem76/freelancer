@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render
 
 # Create your views here.
@@ -24,8 +26,8 @@ class Orders(APIView):
         try:
             orders = clientOrder.objects.create(client_id=request.user.id, order_name=name, description=description,
                                                 order_price=price, image=image, deadline=deadline)
-
-            for i in category:
+            d = json.loads(category)
+            for i in d:
                 orders.order_category.add(i)
                 orders.save()
             order_data = orderProgress.objects.create(order_id=orders.id)
@@ -97,6 +99,7 @@ class SearchOrder(APIView):
         data = clientOrder.objects.filter(order_category__interests__icontains=interests, is_active_order=True)
         serializer = OrderDataSerializer(data, many=True)
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+
 
 class AllOrder(APIView):
     permission_classes = (IsAuthenticated,)
