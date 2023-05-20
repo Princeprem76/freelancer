@@ -45,7 +45,7 @@ class OrderApplicationSerial(serializers.ModelSerializer):
 
 
 class MyOrderSerializer(serializers.ModelSerializer):
-    order = OrderSerializer(read_only=True, many=False)
+    order = OrderDataSerializer(read_only=True, many=False)
 
     class Meta:
         model = orderProgress
