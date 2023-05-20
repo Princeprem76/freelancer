@@ -398,3 +398,12 @@ class InterestSearch(APIView):
         return Response(
             {"user_data": user_serializer.data},
             status=status.HTTP_200_OK, )
+
+class AllFreelancer(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, *args, **kwargs):
+        data = User.objects.filter(user_type=3)
+        serializer = UserNameSerial(data, many=True)
+        return Response({'data':serializer.data}, status=status.HTTP_200_OK)
+

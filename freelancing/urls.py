@@ -18,12 +18,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-
+from rest_framework_simplejwt.views import TokenRefreshView
 from order.views import Orders, OrderApply, ApplicationDetails, AssignApplication, ChangeStatus, SearchOrder, AllOrder, \
     MyOrder, UploadFile
 from payment.views import Order_payment
 from user.views import Login_User, Create_User, forgetpw, activatepw, activate, details, changepass, InterestData, \
-    UserInterestData, ratingsAdd, UserRatingData, emailpass, InterestSearch, SpecificUserData
+    UserInterestData, ratingsAdd, UserRatingData, emailpass, InterestSearch, SpecificUserData, AllFreelancer
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -51,6 +51,8 @@ urlpatterns = [
     path('api/v1/allorder/', AllOrder.as_view(), name="All order"),
     path('api/v1/myorder/', MyOrder.as_view(), name="freelancer assigned order"),
     path('api/v1/uploadfile/<int:id>/', UploadFile.as_view(), name="Order File Upload"),
+    path('refresh-token/', TokenRefreshView.as_view(), name="refresh_token"),
+    path('api/v1/allfreelancer/', AllFreelancer.as_view(), name="All Freelancer"),
 
 ]
 if settings.DEBUG:
