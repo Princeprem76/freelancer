@@ -35,7 +35,7 @@ class Orders(APIView):
     def get(self, request, *args, **kwargs):
         data = clientOrder.objects.filter(client_id=request.user.id)
         serializer = OrderSerializer(data, many=True)
-        return Response({"data": serializer.data,}, status=status.HTTP_200_OK, )
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK, )
 
 
 class OrderApply(APIView):
