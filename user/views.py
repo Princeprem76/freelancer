@@ -358,7 +358,7 @@ class UserInterestData(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        itemlist = request.data['ids']
+        itemlist = request.POST.get('ids', False)
         data, _ = FreelancerInterest.objects.get_or_create(user_id=request.user.id)
         itemss = json.loads(itemlist)
         for i in itemss:
