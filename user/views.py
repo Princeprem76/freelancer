@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-
+import json
 from user.models import User, UserRating, UserInterest, FreelancerInterest
 from user.serializer import UserDataSerial, Rating, InterestDataSerializer, FreelancerSerializer, UserNameSerial
 from user.utils import Util
@@ -360,7 +360,8 @@ class UserInterestData(APIView):
     def post(self, request, *args, **kwargs):
         itemlist = request.data['ids']
         data, _ = FreelancerInterest.objects.get_or_create(user=request.user.id)
-        for i in itemlist:
+        itemss = json.loads(itemlist)
+        for i in itemss:
             data.item.add(i)
             data.save()
         return Response({'data': 'Interest Added'}, status=status.HTTP_200_OK)
