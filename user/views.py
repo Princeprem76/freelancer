@@ -359,7 +359,7 @@ class UserInterestData(APIView):
 
     def post(self, request, *args, **kwargs):
         itemlist = request.data['ids']
-        data, _ = FreelancerInterest.objects.get_or_create(user=request.user.id)
+        data, _ = FreelancerInterest.objects.get_or_create(user_id=request.user.id)
         itemss = json.loads(itemlist)
         for i in itemss:
             data.item.add(i)
