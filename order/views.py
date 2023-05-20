@@ -129,7 +129,7 @@ class UploadFile(APIView):
 
     def post(self, request, *args, **kwargs):
         files = request.FILES.get('file', False)
-        order_id= request.data['order_id']
+        order_id= kwargs['id']
         data = orderFile.objects.get_or_create(order_id=order_id)
         data.files = files
         data.save()
