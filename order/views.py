@@ -17,16 +17,18 @@ class Orders(APIView):
         data = request.data
         name = data['order_name']
         description = data['description']
-        category = data['oder_category']
+        category = request.POST.get('order_category', False)
         price = data['price']
         image = request.FILES.get('image', False)
         deadline = data['deadline']
         try:
             orders = clientOrder.objects.create(client_id=request.user.id, order_name=name, description=description,
                                                 order_price=price, image=image, deadline=deadline)
+
             for i in category:
                 orders.order_category.add(i)
                 orders.save()
+            order_data = orderProgress.objects.create(order_id=orders.id)
             return Response({'data': 'Order Created'}, status=status.HTTP_200_OK)
 
         except:

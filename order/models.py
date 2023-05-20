@@ -21,7 +21,7 @@ class clientOrder(models.Model):
 
 class orderProgress(models.Model):
     order = models.ForeignKey(clientOrder, on_delete=models.CASCADE)
-    freelancer = models.ForeignKey(User, on_delete=models.CASCADE)
+    freelancer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     class status(models.IntegerChoices):
         PENDING = 1, _('Pending')
@@ -29,4 +29,4 @@ class orderProgress(models.Model):
         COMPLETED = 3, _('Completed')
 
     orderStatus = models.IntegerField(choices=status.choices, null=True, blank=True)
-    applicants = models.ManyToManyField(User, related_name='Applicant')
+    applicants = models.ManyToManyField(User, related_name='Applicant', null=True)
