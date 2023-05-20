@@ -20,7 +20,7 @@ from django.contrib import admin
 from django.urls import path
 
 from order.views import Orders, OrderApply, ApplicationDetails, AssignApplication, ChangeStatus, SearchOrder, AllOrder, \
-    MyOrder
+    MyOrder, UploadFile
 from payment.views import Order_payment
 from user.views import Login_User, Create_User, forgetpw, activatepw, activate, details, changepass, InterestData, \
     UserInterestData, ratingsAdd, UserRatingData, emailpass, InterestSearch, SpecificUserData
@@ -50,6 +50,7 @@ urlpatterns = [
     path('api/v1/searchorder/', SearchOrder.as_view(), name="Search order"),
     path('api/v1/allorder/', AllOrder.as_view(), name="All order"),
     path('api/v1/myorder/', MyOrder.as_view(), name="freelancer assigned order"),
+    path('api/v1/uploadfile/<int:id>/', UploadFile.as_view(), name="Order File Upload"),
 
 ]
 if settings.DEBUG:

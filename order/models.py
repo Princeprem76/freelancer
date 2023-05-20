@@ -30,3 +30,8 @@ class orderProgress(models.Model):
 
     orderStatus = models.IntegerField(choices=status.choices, null=True, blank=True)
     applicants = models.ManyToManyField(User, related_name='Applicant', null=True)
+
+
+class orderFile(models.Model):
+    order = models.ForeignKey(clientOrder, on_delete=models.CASCADE)
+    files = models.FileField(upload_to='order_files/', blank=True, null=True)

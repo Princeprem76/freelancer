@@ -8,9 +8,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from order.models import clientOrder, orderProgress
+from order.models import clientOrder, orderProgress, orderFile
 from order.serializer import OrderSerializer, OrderApplicationSerial, OrderDataSerializer, OrderApplicantsCount, \
-    MyOrderSerializer
+    MyOrderSerializer, OrderFile
 
 
 class Orders(APIView):
@@ -30,6 +30,7 @@ class Orders(APIView):
             order_data = orderProgress.objects.create(order_id=orders.id)
             order_data.orderStatus = 1
             order_data.save()
+            order_file = orderFile.objects.create(order_id=orders.id)
             d = json.loads(category)
             for i in d:
                 orders.order_category.add(i)
@@ -121,3 +122,22 @@ class MyOrder(APIView):
         data = orderProgress.objects.filter(freelancer_id=request.user.id)
         serializer = MyOrderSerializer(data, many=True)
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+
+
+class UploadFile(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        files = request.FILES.get('file', False)
+        order_id= request.data['order_id']
+        data = orderFile.objects.get_or_create(order_id=order_id)
+        data.files = files
+        data.save()
+        return Response({"data": 'File Added'}, status=status.HTTP_200_OK,)
+
+    def get(self, request, *args, **kwargs):
+        order_id = kwargs['id']
+        data = orderFile.objects.get(order_id=order_id)
+        serializer = OrderFile(data, many=True)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK, )
+
