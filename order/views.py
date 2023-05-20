@@ -43,7 +43,7 @@ class OrderApply(APIView):
 
     def post(self, request, *args, **kwargs):
         user_id = request.user.id
-        order_id = request.query_params.get('id')
+        order_id = kwargs['id']
         order_data, _ = orderProgress.objects.get_or_create(order_id=order_id)
         order_data.applicants.add(user_id)
         order_data.orderStatus = 1
@@ -55,7 +55,7 @@ class ApplicationDetails(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        order_id = request.query_params.get('id')
+        order_id = kwargs['id']
         order_data = orderProgress.objects.get(order_id=order_id)
         serializer = OrderApplicationSerial(order_data, many=False)
         return Response({"data": serializer.data}, status=status.HTTP_200_OK, )
@@ -65,7 +65,7 @@ class AssignApplication(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        order_id = request.query_params.get('id')
+        order_id = kwargs['id']
         order_data = orderProgress.objects.get(order_id=order_id)
         order_data.freelancer = request.data['user_id']
         order_data.orderStatus = 2
@@ -77,7 +77,7 @@ class ChangeStatus(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        order_id = request.query_params.get('id')
+        order_id = kwargs['id']
         order_data = orderProgress.objects.get(order_id=order_id)
         order_data.orderStatus = 3
         order = clientOrder.objects.get(id=order_id)

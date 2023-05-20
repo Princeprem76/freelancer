@@ -330,7 +330,7 @@ class UserRatingData(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        user = self.kwargs.get("id")
+        user = kwargs["id"]
         detail = UserRating.objects.filter(rating_receiver_id=user)
         count = 0
         u = UserRating.objects.filter(rating_receiver_id=user).values('rating')
@@ -375,7 +375,7 @@ class SpecificUserData(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        userid = self.kwargs.get("id")
+        userid = kwargs["id"]
         data = User.objects.get(id=userid)
         ratings = UserRating.objects.filter(rating_receiver_id=userid)
         interests = FreelancerInterest.objects.get(user_id=userid)
